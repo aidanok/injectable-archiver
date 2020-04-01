@@ -63,7 +63,7 @@ export async function simplePageArchiver(url: string): Promise<PageArchiveResult
   } 
   catch (e) {
     page.browser().disconnect();
-    return e;
+    throw(e);
   }
 }
 
