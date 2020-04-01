@@ -40,6 +40,13 @@ src/lib/pass1.ts
 
 These do most of the work.
 
+```bash
+src/lib/simple.ts
+```
+
+A simple api over the internals, give it a url and get back an inlined html page, or a raw resource.
+
+
 `src/lib/archive.ts` - this is really rough cli script which you probably should just ignore :) you can give it a url and outfolder and it will scrape and put the output there with some json of the intermediate steps for debugging: `ts-node src/lib/archive.ts <URL> <OUTFOLDER>`
 
 `src/http/app.ts` the express server.
