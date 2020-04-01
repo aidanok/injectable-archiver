@@ -33,14 +33,18 @@ that exactly as is, it does this based on the server response, so you can give i
 
 ## Interesting parts of source  
 
-```
+```bash
 src/lib/pass0.ts
-src/lib/pass1.ts 
+src/lib/pass1.ts
 ```
 
 These do most of the work.
 
-`src/lib/archive.ts` - this is really rough cli script which you probably should just ignore :) you can give it a url and outfolder and it will scrape and put the output there
+`src/lib/archive.ts` - this is really rough cli script which you probably should just ignore :) you can give it a url and outfolder and it will scrape and put the output there with some json of the intermediate steps for debugging: `ts-node src/lib/archive.ts <URL> <OUTFOLDER>`
+
+`src/http/app.ts` the express server.
+
+
 
 
 
