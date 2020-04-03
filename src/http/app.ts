@@ -100,7 +100,10 @@ const renderPreview = (url: string, content: Buffer, contentType: string) =>
         })
     </script>
     <div style="margin: 1.5em; height: 90%; display: flex; flex-direction: column; justify-content: stretch;">
-    <p>Preview of ${url}</p>
+    <p>
+      Preview of ${url} </br>
+      Archived Page Size: ${(content.byteLength / 1024 / 1024).toFixed(2)} MiB
+    </p>
     <iframe style="flex-grow: 1; border: 2px solid; border-radius: 0.24em">
     </iframe>
     </div>
