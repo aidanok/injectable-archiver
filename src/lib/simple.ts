@@ -1,5 +1,5 @@
 import { archivePagePass0, Pass0Result } from "./pass0";
-import { getPage, navigatePageSimple } from "./puppeteer-setup";
+import { getPage, navigatePageSimple, scrollPageToBottom } from "./puppeteer-setup";
 import { retrieveResources, inlineResources, RetrievedResource } from "./pass1";
 
 export interface PageArchiveResult {
@@ -28,11 +28,15 @@ export async function simplePageArchiver(url: string): Promise<PageArchiveResult
   
   try { 
     
-    const response = await navigatePageSimple(page, url, { waitFor: 9000 });
+    const response = await navigatePageSimple(page, url, { waitFor: 5000 });
     
     if (!response) {
       throw new Error(`No response for ${url}`);
     }
+
+    //await new Promise(res => setTimeout(res, 1000));
+    //await scrollPageToBottom(page);
+    //await new Promise(res => setTimeout(res, 1000));  
 
     if (!response.headers()['content-type'].toLowerCase().startsWith('text/html')) {
       return {

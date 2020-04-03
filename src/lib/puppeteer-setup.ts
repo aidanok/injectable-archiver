@@ -4,17 +4,25 @@ import { addExtra } from 'puppeteer-extra'
 import  Stealth from 'puppeteer-extra-plugin-stealth'
 import AdblockerPlugin from 'puppeteer-extra-plugin-adblocker'
 
-/**
- * 
- */
-export async function getPage(): Promise<puppeteer.Page> {
+
+// Wii user-agent gives awesome twitter output :) 
+// standard or slurp gives old style twitter 'modal' view
+export const userAgents = {
+  'wii': 'Opera/9.30 (Nintendo Wii; U; ; 2071; Wii Shop Channel/1.0; en)',
+  'standard': 'Mozilla/5.0 (compatible)',
+  'slurp': 'Mozilla/5.0 (compatible; Yahoo! Slurp; http://help.yahoo.com/help/us/ysearch/slurp)'
+}
+
+export async function getPage(ua: keyof typeof userAgents = 'standard'): Promise<puppeteer.Page> {
   const browser = await getBrowser();
   const page = await browser.newPage();
   
-  page.setViewport({ width: 800, height: 1080 });
+  await page.setUserAgent(userAgents[ua]);
+
+  page.setViewport({ width: 800, height: 1680 });
   page.on("error", function (err) {
     err.message  = `[BROWSER] ${err.message}`
-    console.error(err); 
+    console.error(err);
   })
   return page;
 }
@@ -37,17 +45,14 @@ export async function getBrowser() {
     '&--disable-accelerated-2d-canvas=true' +
     '&--disable-gpu=true' +
     '&--headless=false'
+    //'&--disable-extensions-except=/extensions/cookies_extension' + 
+    //'&--load-extension=/extensions/cookies_extension'
   });
 
   return browser;
 }
 
-// Wii user-agent gives awesome twitter output :) 
-// Some scraping bots (GoogleBot or Yahoo Slurp) give 
-// different type twitter output ( the modal style )
-export const userAgents = {
-  'wii': 'Opera/9.30 (Nintendo Wii; U; ; 2071; Wii Shop Channel/1.0; en)'
-}
+
 
 export async function navigatePageSimple(page: puppeteer.Page, url: string, { waitFor = 4000 }) {
   const response = await page.goto(url, {
@@ -59,4 +64,44 @@ export async function navigatePageSimple(page: puppeteer.Page, url: string, { wa
     return response;
   }
   return response;
+}
+
+
+/**
+ * Scrolling page to bottom based on Body element
+ * @param {Object} page Puppeteer page object
+ * @param {Number} scrollStep Number of pixels to scroll on each step
+ * @param {Number} scrollDelay A delay between each scroll step
+ * @returns {Number} Last scroll position
+ */
+export async function scrollPageToBottom(page: puppeteer.Page, scrollStep = 200, scrollDelay = 1200, maxScroll = 5000) {
+  const lastPosition = await page.evaluate(
+    async (step, delay) => {
+      const getScrollHeight = (element: any) => {
+        const { scrollHeight, offsetHeight, clientHeight } = element
+        return Math.max(scrollHeight, offsetHeight, clientHeight)
+      }
+
+      const position = await new Promise((resolve) => {
+        let count = 0
+        const intervalId = setInterval(() => {
+          const { body } = document
+          const availableScrollHeight = getScrollHeight(body)
+
+          window.scrollBy(0, step)
+          count += step
+
+          if (count >= availableScrollHeight || count >= maxScroll) {
+            clearInterval(intervalId)
+            resolve(count)
+          }
+        }, delay)
+      })
+
+      return position
+    },
+    scrollStep,
+    scrollDelay,
+  )
+  return lastPosition
 }
