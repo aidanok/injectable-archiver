@@ -1,63 +1,59 @@
+import puppeteer from 'puppeteer-core';
+import { addExtra } from 'puppeteer-extra';
+import Stealth from 'puppeteer-extra-plugin-stealth';
+import AdblockerPlugin from 'puppeteer-extra-plugin-adblocker';
 
-import puppeteer from 'puppeteer-core'
-import { addExtra } from 'puppeteer-extra'
-import  Stealth from 'puppeteer-extra-plugin-stealth'
-import AdblockerPlugin from 'puppeteer-extra-plugin-adblocker'
-
-
-// Wii user-agent gives awesome twitter output :) 
+// Wii user-agent gives awesome twitter output :)
 // standard or slurp gives old style twitter 'modal' view
 export const userAgents = {
-  'wii': 'Opera/9.30 (Nintendo Wii; U; ; 2071; Wii Shop Channel/1.0; en)',
-  'standard': 'Mozilla/5.0 (compatible)',
-  'slurp': 'Mozilla/5.0 (compatible; Yahoo! Slurp; http://help.yahoo.com/help/us/ysearch/slurp)'
-}
+  wii: 'Opera/9.30 (Nintendo Wii; U; ; 2071; Wii Shop Channel/1.0; en)',
+  standard: 'Mozilla/5.0 (compatible)',
+  slurp: 'Mozilla/5.0 (compatible; Yahoo! Slurp; http://help.yahoo.com/help/us/ysearch/slurp)'
+};
 
 export async function getPage(ua: keyof typeof userAgents = 'standard'): Promise<puppeteer.Page> {
   const browser = await getBrowser();
   const page = await browser.newPage();
-  
+
   await page.setUserAgent(userAgents[ua]);
 
   page.setViewport({ width: 800, height: 1680 });
-  page.on("error", function (err) {
-    err.message  = `[BROWSER] ${err.message}`
+  page.on('error', function(err) {
+    err.message = `[BROWSER] ${err.message}`;
     console.error(err);
-  })
+  });
   return page;
 }
 
 export async function getBrowser() {
-
   const ePup = addExtra(puppeteer);
-  
+
   ePup.use(Stealth());
   ePup.use(AdblockerPlugin());
 
   const browser = await ePup.connect({
     browserWSEndpoint:
-    'ws://localhost:3000' +
-    '?--window-size=1920x1080' +
-    // `&--proxy-server=http://${proxy}` +
-    '&--no-sandbox=true' +
-    '&--disable-setuid-sandbox=true' +
-    '&--disable-dev-shm-usage=true' +
-    '&--disable-accelerated-2d-canvas=true' +
-    '&--disable-gpu=true' +
-    '&--headless=false'
-    //'&--disable-extensions-except=/extensions/cookies_extension' + 
-    //'&--load-extension=/extensions/cookies_extension'
+      'ws://localhost:3000' +
+      '?--window-size=1920x1080' +
+      '&ignoreDefaultArgs=--enable-automation' +
+      // `&--proxy-server=http://${proxy}` +
+      //'&--no-sandbox=true' +
+      //'&--disable-setuid-sandbox=true' +
+      //'&--disable-dev-shm-usage=true' +
+      //'&--disable-accelerated-2d-canvas=true' +
+      //'&--disable-gpu=true' +
+      //'&--headless=false' +
+      '&--load-extension=/usr/src/app/extensions/cookies_extension' +
+      '&--disable-extensions-except=/usr/src/app/extensions/cookies_extension'
   });
 
   return browser;
 }
 
-
-
 export async function navigatePageSimple(page: puppeteer.Page, url: string, { waitFor = 4000 }) {
   const response = await page.goto(url, {
     timeout: 40000,
-    waitUntil: 'networkidle2',
+    waitUntil: 'networkidle2'
   });
   if (response && response.status() < 400) {
     await page.waitFor(waitFor);
@@ -65,7 +61,6 @@ export async function navigatePageSimple(page: puppeteer.Page, url: string, { wa
   }
   return response;
 }
-
 
 /**
  * Scrolling page to bottom based on Body element
@@ -78,30 +73,30 @@ export async function scrollPageToBottom(page: puppeteer.Page, scrollStep = 200,
   const lastPosition = await page.evaluate(
     async (step, delay) => {
       const getScrollHeight = (element: any) => {
-        const { scrollHeight, offsetHeight, clientHeight } = element
-        return Math.max(scrollHeight, offsetHeight, clientHeight)
-      }
+        const { scrollHeight, offsetHeight, clientHeight } = element;
+        return Math.max(scrollHeight, offsetHeight, clientHeight);
+      };
 
-      const position = await new Promise((resolve) => {
-        let count = 0
+      const position = await new Promise(resolve => {
+        let count = 0;
         const intervalId = setInterval(() => {
-          const { body } = document
-          const availableScrollHeight = getScrollHeight(body)
+          const { body } = document;
+          const availableScrollHeight = getScrollHeight(body);
 
-          window.scrollBy(0, step)
-          count += step
+          window.scrollBy(0, step);
+          count += step;
 
           if (count >= availableScrollHeight || count >= maxScroll) {
-            clearInterval(intervalId)
-            resolve(count)
+            clearInterval(intervalId);
+            resolve(count);
           }
-        }, delay)
-      })
+        }, delay);
+      });
 
-      return position
+      return position;
     },
     scrollStep,
-    scrollDelay,
-  )
-  return lastPosition
+    scrollDelay
+  );
+  return lastPosition;
 }
