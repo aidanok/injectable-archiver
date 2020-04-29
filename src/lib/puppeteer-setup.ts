@@ -36,6 +36,7 @@ export async function getBrowser() {
       'ws://localhost:3000' +
       '?--window-size=1920x1080' +
       '&ignoreDefaultArgs=--enable-automation' +
+      '&headless=false' +
       // `&--proxy-server=http://${proxy}` +
       //'&--no-sandbox=true' +
       //'&--disable-setuid-sandbox=true' +
